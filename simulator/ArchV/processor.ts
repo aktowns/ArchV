@@ -17,6 +17,7 @@ export class CPU {
 
     private _err: Register = 0;
 
+    private _zf: Boolean   = false;
     private _sp: Register  = 0;
     private _eip: Register = 0;
     
@@ -80,6 +81,12 @@ export class CPU {
         assert(isUInt32(v), "register set larger than width");
         this._eip = v;
     }
+
+    public get zf(): Register { return this._zf ? 1 : 0 }
+    public set zf(v: Register) {
+        assert(v == 0 || v == 1, "zeroflag register should be 1 or 0");
+        this._zf = (v == 1);
+    }
     
     public clear() {
         this._gp1 = 0;
@@ -94,6 +101,7 @@ export class CPU {
         this._err = 0;
         this._eip = 0;
         this._sp = 0;
+        this._zf = false;
     }
     
     public print_registers() {
@@ -102,6 +110,7 @@ export class CPU {
             gp4: ${format32(this._gp4)} gp5: ${format32(this._gp5)} gp6: ${format32(this._gp6)}
             gp7: ${format32(this._gp7)} gp8: ${format32(this._gp8)} gp9: ${format32(this._gp9)}
             err: ${format32(this._err)}  sp: ${format32(this._sp)} eip: ${format32(this._eip)}
+            zf: ${this.zf}
         `.replace(/^\s+/mg, '').replace(/\n/g, ' '));
     }
 }
@@ -115,13 +124,18 @@ export class System {
         this.memory = memory;    
     }
     
-    public load(code: [number], offset: number = 0x00) {
+    public load(code: number[], offset: number = 0x00) {
         memory.copy(this.memory, offset, code);
     }
     
     public start(offset: number = 0x00) {
         this.cpu.eip = offset;
         this.process();
+    }
+    
+    public boot(code: number[], offset: number = 0x00) {
+        this.load(code, offset);
+        this.start(offset);
     }
     
     public reboot() {
@@ -165,6 +179,8 @@ export class System {
                 /* hlt              */ case 0x0a: f(); return; /* !! */
                 /* jmp     mem      */ case 0x0b: /* VV */
                 /* jnz     mem      */ case 0x0c: f(this.read32()); break;
+                /* jz      mem      */ case 0x0d: f(this.read32()); break;
+                /* cmpr    reg, reg */ case 0x0e: f(this.read8(), this.read8()); break;
                 /* addr    reg, reg */ case 0x10: f(this.read8(), this.read8()); break;
                 default:
                     throw new Error(`unknown opcode ${format8(op)}`);

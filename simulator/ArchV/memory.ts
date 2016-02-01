@@ -24,7 +24,7 @@ export function copy32(mem: Memory, pos: number, val: number): void {
     mem[pos+3] = (val & 0xff);
 }
 
-export function copy(mem: Memory, pos: number, val: [number]): void {
+export function copy(mem: Memory, pos: number, val: number[]): void {
     mem.set(val, pos);
 }
 

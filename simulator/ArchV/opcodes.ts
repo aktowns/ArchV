@@ -14,81 +14,113 @@ var registers: { [opcode: number]: string; } = {
     0x12: 'gp9',
     0x13: 'err',
     0x14: 'sp',
-    0x15: 'eip'
+    0x15: 'eip',
+    0x16: 'zf'
 };
 
 export function opcodes (mem: memory.Memory, cpu: processor.CPU): { [opcode: number]: any; } { 
     return {
-        0x00: function () {
-            console.log("nop");    
+        // nop
+        0x00: () => {
+            // console.log("nop");    
         },
-        0x01: function (reg: processor.Register, ptr: number) { // movrm8 reg, memory
+        // movrm8 reg, memory
+        0x01: (reg: processor.Register, ptr: number) => { 
             var source = registers[reg];
             memory.copy8(mem, ptr, cpu[source]);
             
             console.log(`movrm8 $${source} -> *${format32(ptr)}`);
         },
-        0x02: function (reg: processor.Register, ptr: number) { // movrm16 reg, memory
+        // movrm16 reg, memory
+        0x02: (reg: processor.Register, ptr: number) => { 
             var source = registers[reg];
             memory.copy16(mem, ptr, cpu[source]);
             
             console.log(`movrm16 $${source} -> *${format32(ptr)}`);
         },
-        0x03: function (reg: processor.Register, ptr: number) { // movrm32 reg, memory
+        // movrm32 reg, memory
+        0x03: (reg: processor.Register, ptr: number) => { 
             var source = registers[reg];
             memory.copy32(mem, ptr, cpu[source]);
             
             console.log(`movrm32 $${source} -> *${format32(ptr)}`);
         },
-        0x04: function (val: number, reg: processor.Register) { // movr8 val, reg
+        // movr8 val, reg
+        0x04: (val: number, reg: processor.Register) => { 
             var target = registers[reg];
             cpu[target] = val & 0xff;
             
             console.log(`movr8 ${format8(val)} -> $${target}`);
         },
-        0x05: function (val: number, reg: processor.Register) { // movr16 val, reg
+        // movr16 val, reg
+        0x05: (val: number, reg: processor.Register) => { 
             var target = registers[reg];
             cpu[target] = val & 0xffff;
             
             console.log(`movr16 ${format16(val)} -> $${target}`);
         },
-        0x06: function (val: number, reg: processor.Register) { // movr32 val, reg
+        // movr32 val, reg
+        0x06: (val: number, reg: processor.Register) => { 
             var target = registers[reg];
             cpu[target] = val;
             
             console.log(`movr32 ${format32(val)} -> $${target}`);
         },
-        0x07: function (val: number, ptr: number) { // movm8 val, memory
+        // movm8 val, memory
+        0x07: (val: number, ptr: number) => { 
             memory.copy8(mem, ptr, val);
             
             console.log(`movm8 ${format8(val)} -> *${format32(ptr)}`);
         },
-        0x08: function (val: number, ptr: number) { // movm16 val, memory
+        // movm16 val, memory
+        0x08: (val: number, ptr: number) => { 
             memory.copy16(mem, ptr, val);
             
             console.log(`movm16 ${format16(val)} -> *${format32(ptr)}`);
         },
-        0x09: function (val: number, ptr: number) { // movm32 val, memory
+        // movm32 val, memory
+        0x09: (val: number, ptr: number) => { 
             memory.copy32(mem, ptr, val);
             
             console.log(`movm32 ${format32(val)} -> *${format32(ptr)}`);
         },
-        0x0a: function () { // hlt
+        // hlt
+        0x0a: () => {
             console.log("hlt");
         },
-        0x0b: function (ptr: number) { // jmp memory
+        // jmp memory
+        0x0b: (ptr: number) => { 
             cpu.eip = ptr;
             
             console.log(`jmp *${format32(ptr)}`);
         }, 
-        0x0c: function (ptr: number) { // jnz memory
-            if (cpu.gp1 != 0x00) {
+        // jnz memory
+        0x0c: (ptr: number) => { 
+            if (cpu.zf == 0x00) {
                 cpu.eip = ptr;
             }
             
             console.log(`jnz *${format32(ptr)}`);
         },
-        0x10: function (reg1: processor.Register, reg2: processor.Register) { // add reg, reg
+        // jz memory
+        0x0d: (ptr: number) => {
+            if (cpu.zf == 0x01) {
+                cpu.eip = ptr;
+            }
+
+            console.log(`jz *${format32(ptr)}`);
+        },
+        // cmpr reg, reg
+        0x0e: (reg1: processor.Register, reg2: processor.Register) => {
+            var target1 = registers[reg1];
+            var target2 = registers[reg2];
+            
+            cpu.zf = (cpu[target1] == cpu[target2]) ? 1 : 0;
+
+            console.log(`cmpr *$${target1}, $${target2} ; js=${cpu.zf}`);
+        },
+        // add reg, reg
+        0x10: (reg1: processor.Register, reg2: processor.Register) => {  
             var target1 = registers[reg1];
             var target2 = registers[reg2];
             cpu[target1] = cpu[target1] + cpu[target2]
