@@ -178,10 +178,11 @@ export class System {
                 /* movm32  val, mem */ case 0x09: f(this.read32(), this.read32()); break;
                 /* hlt              */ case 0x0a: f(); return; /* !! */
                 /* jmp     mem      */ case 0x0b: /* VV */
-                /* jnz     mem      */ case 0x0c: f(this.read32()); break;
+                /* jnz     mem      */ case 0x0c: /* VV */ 
                 /* jz      mem      */ case 0x0d: f(this.read32()); break;
-                /* cmpr    reg, reg */ case 0x0e: f(this.read8(), this.read8()); break;
-                /* addr    reg, reg */ case 0x10: f(this.read8(), this.read8()); break;
+                /* cmpr    reg, reg */ case 0x0e: /* VV */
+                /* addr    reg, reg */ case 0x10: /* VV */
+                /* subr    reg, reg */ case 0x11: f(this.read8(), this.read8()); break;
                 default:
                     throw new Error(`unknown opcode ${format8(op)}`);
             }

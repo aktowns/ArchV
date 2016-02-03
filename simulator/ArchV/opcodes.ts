@@ -125,7 +125,15 @@ export function opcodes (mem: memory.Memory, cpu: processor.CPU): { [opcode: num
             var target2 = registers[reg2];
             cpu[target1] = cpu[target1] + cpu[target2]
             
-            console.log(`add $${target1}, $${target2}`);
+            console.log(`addr $${target1}, $${target2}`);
+        },
+        // sub reg, reg 
+        0x11: (reg1: processor.Register, reg2: processor.Register) => {
+            var target1 = registers[reg1];
+            var target2 = registers[reg2];
+            cpu[target1] = cpu[target1] - cpu[target2]
+
+            console.log(`subr $${target1}, $${target2}`);
         }
     };
 };
